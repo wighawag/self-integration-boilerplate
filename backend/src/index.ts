@@ -1,11 +1,7 @@
 import { Hono } from "hono";
 import { CloudflareWorkerEnv } from "./env.js";
 import { ServerOptions } from "./types.js";
-import {
-  SelfBackendVerifier,
-  AllIds,
-  DefaultConfigStore,
-} from "@selfxyz/core";
+import { SelfBackendVerifier, AllIds, DefaultConfigStore } from "@selfxyz/core";
 
 export function createServer<CustomEnv extends CloudflareWorkerEnv>(
   options: ServerOptions<CustomEnv>,
@@ -23,7 +19,7 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
       // Get environment variables
       // The endpoint should be provided via environment variable
       // This is the public URL where the verification endpoint is hosted
-      const scopeSeed = c.env.SELF_SCOPE_SEED || "self-workshop";
+      const scopeSeed = c.env.SELF_SCOPE_SEED;
       const endpoint = c.env.SELF_ENDPOINT;
 
       if (!endpoint) {
@@ -31,7 +27,7 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
           {
             message: "SELF_ENDPOINT environment variable is not set",
           },
-          500
+          500,
         );
       }
 
@@ -46,7 +42,7 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
           excludedCountries: ["USA"],
           ofac: false,
         }),
-        "hex" // userIdentifierType
+        "hex", // userIdentifierType
       );
 
       // Extract data from the request
@@ -60,7 +56,7 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
             message:
               "Proof, publicSignals, attestationId and userContextData are required",
           },
-          200
+          200,
         );
       }
 
@@ -69,7 +65,7 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
         attestationId, // Document type (1 = passport, 2 = EU ID card, 3 = Aadhaar)
         proof, // The zero-knowledge proof
         publicSignals, // Public signals array
-        userContextData // User context data (hex string)
+        userContextData, // User context data (hex string)
       );
 
       // Check if verification was successful
@@ -90,7 +86,7 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
             error_code: "VERIFICATION_FAILED",
             details: result.isValidDetails,
           },
-          200
+          200,
         );
       }
     } catch (error) {
@@ -101,7 +97,7 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
           reason: error instanceof Error ? error.message : "Unknown error",
           error_code: "UNKNOWN_ERROR",
         },
-        200
+        200,
       );
     }
   });

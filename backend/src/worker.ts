@@ -1,4 +1,10 @@
 // ------------------------------------------------------------------------------------------------
+// Polyfills
+// ------------------------------------------------------------------------------------------------
+import { Buffer } from "buffer";
+(globalThis as any).Buffer = Buffer;
+
+// ------------------------------------------------------------------------------------------------
 // Logging
 // ------------------------------------------------------------------------------------------------
 import "named-logs-context";
@@ -27,9 +33,10 @@ const fetch = async (
   env: CloudflareWorkerEnv,
   ctx: ExecutionContext,
 ) => {
-  return wrapWithLogger(request, env, ctx, async () =>
-    app.fetch(request, env, ctx),
-  );
+  return wrapWithLogger(request, env, ctx, async () => {
+    console.log(env);
+    return app.fetch(request, env, ctx);
+  });
 };
 
 export default {

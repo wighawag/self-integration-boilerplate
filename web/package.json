@@ -3,6 +3,9 @@
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
+	"volta": {
+		"node": "22.22.0"
+	},
 	"dependencies": {
 		"@selfxyz/sdk-common": "^1.0.0",
 		"ethers": "^6.14.4",
@@ -35,7 +38,7 @@
 	"scripts": {
 		"prepare": "pnpm generate-pwa-icons-and-tags && svelte-kit sync || echo ''",
 		"generate-pwa-icons-and-tags": "pwag static/icon.png src/web-config.json",
-		"dev": "vite dev",
+		"dev": "echo $PUBLIC_SELF_ENDPOINT && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -43,8 +46,5 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"serve": "ipfs-emulator --only -d build -p 8080"
-	},
-	"volta": {
-		"node": "22.22.0"
 	}
 }

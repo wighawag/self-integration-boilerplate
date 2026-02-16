@@ -9,6 +9,7 @@
 		type SelfApp,
 	} from '@selfxyz/sdk-common';
 	import Head from '$lib/Head.svelte';
+	import {env} from '$env/dynamic/public';
 	import SelfQRCode from '$lib/self/SelfQRCode.svelte';
 
 	let linkCopied = $state(false);
@@ -64,13 +65,11 @@
 
 	onMount(() => {
 		try {
-			const appName = import.meta.env.PUBLIC_SELF_APP_NAME || 'Self Workshop';
-			const scopeSeed =
-				import.meta.env.PUBLIC_SELF_SCOPE_SEED || 'self-workshop';
-			const endpoint =
-				import.meta.env.PUBLIC_SELF_ENDPOINT ||
-				'https://applicants-monitors-purposes-everybody.trycloudflare.com/api/verify' ||
-				'http://localhost:34005/api/verify';
+			const appName = env.PUBLIC_SELF_APP_NAME;
+			const scopeSeed = env.PUBLIC_SELF_SCOPE_SEED;
+			const endpoint = env.PUBLIC_SELF_ENDPOINT;
+
+			console.log({appName, scopeSeed, endpoint});
 
 			const app = new SelfAppBuilder({
 				version: 2,

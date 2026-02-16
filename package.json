@@ -3,16 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "devDependencies": {
-    "ldenv": "^0.3.16",
-    "set-defaults": "^0.0.5",
-    "syncpack": "^13.0.4",
-    "zellij-launcher": "^0.0.1"
+  "volta": {
+    "node": "22.22.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
     ]
+  },
+  "devDependencies": {
+    "ldenv": "^0.3.16",
+    "set-defaults": "^0.0.5",
+    "syncpack": "^13.0.4",
+    "zellij-launcher": "^0.0.1"
   },
   "scripts": {
     "prepare": "set-defaults .vscode",
@@ -32,8 +35,5 @@
     "stop": "zellij kill-session $npm_package_name",
     "start:pnpm": "pnpm -r dev",
     "start": "zellij-launcher a $npm_package_name || zellij -n zellij.kdl -s $npm_package_name"
-  },
-  "volta": {
-    "node": "22.22.0"
   }
 }

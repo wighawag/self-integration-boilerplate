@@ -3,8 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "volta": {
+    "node": "22.22.0"
+  },
   "dependencies": {
     "@selfxyz/core": "^1.1.0-beta.7",
+    "buffer": "^6.0.3",
     "hono": "^4.7.5",
     "named-logs": "^0.3.2",
     "named-logs-context": "^0.1.1",
@@ -17,12 +21,9 @@
     "wrangler": "^4.2.0"
   },
   "scripts": {
-    "dev": "wrangler dev --port 34005",
+    "dev": "echo $SELF_ENDPOINT && wrangler dev --port 34005",
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest"
-  },
-  "volta": {
-    "node": "22.22.0"
   }
 }
