@@ -34,7 +34,6 @@ const fetch = async (
   ctx: ExecutionContext,
 ) => {
   return wrapWithLogger(request, env, ctx, async () => {
-    console.log(env);
     return app.fetch(request, env, ctx);
   });
 };
