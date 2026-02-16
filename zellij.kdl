@@ -12,6 +12,8 @@ layout {
 	}
 
 	pane split_direction="vertical" {
-	
+		pane name="backend" command="pnpm"  {
+			args "run" "--filter" "./backend" "dev"
+		}
 	}
 }

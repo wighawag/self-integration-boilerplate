@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "dependencies": {
+    "@selfxyz/core": "^1.1.0-beta.7",
     "hono": "^4.7.5",
     "named-logs": "^0.3.2",
     "named-logs-context": "^0.1.1",
@@ -20,5 +21,8 @@
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "volta": {
+    "node": "22.22.0"
   }
 }

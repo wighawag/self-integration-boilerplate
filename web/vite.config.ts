@@ -3,6 +3,7 @@ import {defineConfig} from 'vite';
 import {execSync} from 'node:child_process';
 import devtoolsJson from 'vite-plugin-devtools-json';
 import {sveltekit} from '@sveltejs/kit/vite';
+import {nodePolyfills} from 'vite-plugin-node-polyfills';
 
 let FIRST_COMMIT: string | undefined;
 try {
@@ -26,10 +27,20 @@ export default defineConfig({
 		),
 		tailwindcss(),
 		sveltekit(),
+		nodePolyfills({
+			globals: {
+				Buffer: true,
+			},
+		}),
 	],
 	build: {
 		emptyOutDir: true,
 		minify: false,
 		sourcemap: true,
+	},
+	server: {
+		allowedHosts: [
+			'capability-constitutes-tribune-accessory.trycloudflare.com',
+		],
 	},
 });

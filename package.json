@@ -20,8 +20,11 @@
     "---------------------- INSTALL ----------------------": "",
     "sync-deps": "syncpack fix-mismatches",
     "---------------------- DEV ----------------------": "",
+    "backend:dev": "ldenv pnpm --filter ./backend dev",
+    "backend:deploy": "ldenv pnpm --filter ./backend deploy",
     "web:dev": "ldenv pnpm --filter ./web dev",
     "web:build": "ldenv pnpm --filter ./web build",
+    "dev": "pnpm -r --parallel -j 2 run dev",
     "---------------------- DEPLOY ----------------------": "",
     "build": "pnpm web:build",
     "serve": "pnpm run --filter ./web serve",
@@ -29,5 +32,8 @@
     "stop": "zellij kill-session $npm_package_name",
     "start:pnpm": "pnpm -r dev",
     "start": "zellij-launcher a $npm_package_name || zellij -n zellij.kdl -s $npm_package_name"
+  },
+  "volta": {
+    "node": "22.22.0"
   }
 }

@@ -4,18 +4,18 @@ Learn to build privacy-preserving identity verification with [Self Protocol](htt
 
 > 📺 **New to Self?** Watch the [ETHGlobal Workshop](https://www.loom.com/share/8a6d116a5f66415998a496f06fefdc23) first.
 
-## Branches
-This main branch of the repo contains an example of onchain verification. If you would like to see an example with offchain/backend verification, please check out the 'backend-verification' branch.
+## Architecture
 
-- `main`: on chain verification
-- `backend-verification`: off chain/backend verification
-- `hyperlane-example`: onchain verification w/ Hyperlane bridging
+This project uses a split architecture:
+- **`web/`** - Svelte frontend for QR code generation and user interface
+- **`backend/`** - Hono (Cloudflare Workers) backend for verification API
+- **`app/`** - Legacy Next.js implementation (for reference)
 
 ## Prerequisites
 
 - Node.js 20+
 - [Self Mobile App](https://self.xyz)
-- [ngrok](https://ngrok.com/) (for local development)
+- [ngrok](https://ngrok.com/) or [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/do-more-with-tunnels/remote-tunnel/) (for local development)
 
 ---
 
@@ -26,63 +26,56 @@ This main branch of the repo contains an example of onchain verification. If you
 ```bash
 # Clone the workshop repository
 git clone <repository-url>
-git switch backend-verification
-cd workshop/app
+cd workshop
 
 # Install dependencies
-npm install
+pnpm install
 ```
 
-### Step 2: Setup ngrok Tunnel
+### Step 2: Setup Tunnel
 
-For local development, you need a publicly accessible endpoint. Start ngrok in a separate terminal:
+For local development, you need a publicly accessible endpoint. Start a tunnel in a separate terminal:
 
 ```bash
-# Install ngrok if you haven't already
-# macOS: brew install ngrok
-# Or download from: https://ngrok.com/download
+# Option 1: ngrok
+ngrok http 34005
 
-# Start ngrok tunnel to port 3000
-ngrok http 3000
+# Option 2: cloudflared
+cloudflared tunnel --url http://localhost:34005
 ```
 
-Keep ngrok running and note the URL (e.g., `https://abc123.ngrok-free.app`).
+Keep the tunnel running and note the URL (e.g., `https://abc123.ngrok-free.app`).
 
-> **💡 Tip**: ngrok creates a tunnel so the Self app relayers can reach your local backend API endpoint at `/api/verify`.
+> **💡 Tip**: The tunnel creates a public URL so the Self app can reach your local backend API.
 
 ### Step 3: Frontend Configuration
 
-Configure the application:
+The frontend uses Svelte and requires environment variables:
 
 ```bash
-# Create copy of env
-cp .env.example .env
+# Edit web/.env with your tunnel URL
+PUBLIC_SELF_ENDPOINT=https://your-tunnel-url.ngrok-free.app/api/verify
+PUBLIC_SELF_APP_NAME=Self Workshop
+PUBLIC_SELF_SCOPE_SEED=self-workshop
 ```
 
-Edit `.env` with your ngrok URL from Step 2:
-```bash
-# Your ngrok URL from Step 2 + /api/verify
-NEXT_PUBLIC_SELF_ENDPOINT=https://your-ngrok-url.ngrok-free.app/api/verify
-
-# App configuration
-NEXT_PUBLIC_SELF_APP_NAME="Self Workshop"
-NEXT_PUBLIC_SELF_SCOPE_SEED="self-workshop"
-```
-
-> **⚠️ Important**: The endpoint must be publicly accessible. Update it each time you restart ngrok.
+> **⚠️ Important**: The endpoint must be publicly accessible. Update it each time you restart the tunnel.
 
 ### Step 4: Start Development
 
 ```bash
-# Start the Next.js development server
-cd app
-npm run dev
+# Run both backend and frontend
+pnpm dev
+
+# Or run separately:
+pnpm backend:dev  # Start Hono backend (port 34005)
+pnpm web:dev     # Start Svelte frontend (port 5173)
 ```
 
-Visit `http://localhost:3000` to see your verification application!
+Visit `http://localhost:5173` to see your verification application!
 
 **Test the flow:**
-1. Open the app at `http://localhost:3000`
+1. Open the app at `http://localhost:5173`
 2. Scan the QR code with the Self mobile app
 3. Complete verification on your phone
 4. The backend API will verify the proof and return results
@@ -94,27 +87,27 @@ Visit `http://localhost:3000` to see your verification application!
 
 ### Frontend SDK Configuration
 
-The Self SDK is configured in your React components (`app/app/page.tsx`):
+The Self SDK is configured in Svelte components (`web/src/routes/+page.svelte`):
 
-```javascript
-import { SelfAppBuilder, countries } from '@selfxyz/qrcode';
+```typescript
+import { SelfAppBuilder, getUniversalLink, countries } from '@selfxyz/sdk-common';
 
 const app = new SelfAppBuilder({
     version: 2,                    // Always use V2
-    appName: process.env.NEXT_PUBLIC_SELF_APP_NAME,
-    scope: process.env.NEXT_PUBLIC_SELF_SCOPE_SEED,
-    endpoint: process.env.NEXT_PUBLIC_SELF_ENDPOINT,  // Your ngrok URL + /api/verify
-    logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png", // Logo URL or base64
+    appName: import.meta.env.PUBLIC_SELF_APP_NAME,
+    scope: import.meta.env.PUBLIC_SELF_SCOPE_SEED,
+    endpoint: import.meta.env.PUBLIC_SELF_ENDPOINT,  // Your public URL + /api/verify
+    logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
     userId: userId,                // User's identifier (Ethereum address)
-    endpointType: "staging_https", // "staging_https" for testnet backend, "https" for mainnet
+    endpointType: "staging_https", // "staging_https" for testnet, "https" for mainnet
     userIdType: "hex",             // "hex" for Ethereum addresses
-    userDefinedData: "Hola Buenos Aires!!!",  // Optional custom data
+    userDefinedData: "Hello from Svelte!",
     
     disclosures: {
         // Verification requirements (must match your backend config)
         minimumAge: 18,
-        excludedCountries: [countries.UNITED_STATES],  // Use country constants
-        // ofac: true,               // Optional: OFAC compliance checking
+        excludedCountries: [countries.UNITED_STATES],
+        // ofac: true,              // Optional: OFAC compliance checking
         
         // Optional disclosures (uncomment to request):
         // name: true,
@@ -130,16 +123,19 @@ const app = new SelfAppBuilder({
 
 ### Backend API Configuration
 
-Your backend verification endpoint is at `app/api/verify/route.ts`:
+Your backend verification endpoint is at `backend/src/index.ts`:
 
 ```typescript
-import { NextResponse } from "next/server";
 import { SelfBackendVerifier, AllIds, DefaultConfigStore } from "@selfxyz/core";
 
-// Initialize the verifier (runs once when server starts)
+// Get environment variables
+const scopeSeed = c.env.SELF_SCOPE_SEED || "self-workshop";
+const endpoint = c.env.SELF_ENDPOINT;
+
+// Create verifier instance
 const selfBackendVerifier = new SelfBackendVerifier(
-  process.env.NEXT_PUBLIC_SELF_SCOPE_SEED || "self-workshop",
-  process.env.NEXT_PUBLIC_SELF_ENDPOINT || "http://localhost:3000/api/verify",
+  scopeSeed,
+  endpoint,
   true, // mockPassport: true = staging/testnet, false = mainnet
   AllIds,
   new DefaultConfigStore({
@@ -150,51 +146,31 @@ const selfBackendVerifier = new SelfBackendVerifier(
   "hex" // userIdentifierType must match frontend userIdType
 );
 
-export async function POST(req: Request) {
-  try {
-    const { attestationId, proof, publicSignals, userContextData } = await req.json();
-
-    // Verify all required fields are present
-    if (!proof || !publicSignals || !attestationId || !userContextData) {
-      return NextResponse.json({
-        message: "Proof, publicSignals, attestationId and userContextData are required",
-      }, { status: 200 });
-    }
-
-    // Verify the proof
-    const result = await selfBackendVerifier.verify(
-      attestationId,
-      proof,
-      publicSignals,
-      userContextData
-    );
-
-    // Check if verification was successful
-    if (result.isValidDetails.isValid) {
-      return NextResponse.json({
-        status: "success",
-        result: true,
-        credentialSubject: result.discloseOutput,
-      });
-    } else {
-      return NextResponse.json({
-        status: "error",
-        result: false,
-        reason: "Verification failed",
-        details: result.isValidDetails,
-      }, { status: 200 });
-    }
-  } catch (error) {
-    return NextResponse.json({
-      status: "error",
-      result: false,
-      reason: error instanceof Error ? error.message : "Unknown error",
-    }, { status: 200 });
-  }
-}
+// Verify the proof
+const result = await selfBackendVerifier.verify(
+  attestationId,
+  proof,
+  publicSignals,
+  userContextData
+);
 ```
 
 **Important**: Frontend `disclosures` must match backend `DefaultConfigStore` configuration.
+
+### Environment Variables
+
+#### Backend (`backend/.dev.vars` for local, `backend/wrangler.toml` for production)
+```
+SELF_SCOPE_SEED=self-workshop
+SELF_ENDPOINT=https://your-domain.com/api/verify
+```
+
+#### Frontend (`web/.env`)
+```
+PUBLIC_SELF_APP_NAME=Self Workshop
+PUBLIC_SELF_SCOPE_SEED=self-workshop
+PUBLIC_SELF_ENDPOINT=https://your-tunnel-url.ngrok.io/api/verify
+```
 
 ### Verification Modes
 
@@ -227,22 +203,31 @@ export async function POST(req: Request) {
 ## 📁 Project Structure
 
 ```
-self-integration-example/
-└── app/                                 # Next.js application
-    ├── app/
-    │   ├── api/
-    │   │   └── verify/
-    │   │       └── route.ts             # Backend verification API endpoint
-    │   ├── page.tsx                     # Main QR code page with Self SDK integration
-    │   ├── layout.tsx                   # Root layout with metadata
-    │   ├── globals.css                  # Global styles
-    │   └── verified/
-    │       ├── page.tsx                 # Success page after verification
-    │       └── page.module.css          # Success page styles
-    ├── .env.example                     # Environment template
-    ├── package.json                     # Dependencies
-    ├── tailwind.config.ts               # Tailwind CSS configuration
-    └── README.md                        # Documentation
+self-integration-boilerplate/
+├── web/                                 # Svelte frontend
+│   ├── src/
+│   │   ├── routes/
+│   │   │   ├── +page.svelte            # Main verification page
+│   │   │   └── verified/
+│   │   │       └── +page.svelte        # Success page
+│   │   └── lib/
+│   │       └── self/                   # Self SDK integration
+│   │           ├── SelfQRCode.svelte    # QR code component
+│   │           └── verification.ts      # WebSocket utilities
+│   ├── .env                            # Environment variables
+│   └── package.json
+│
+├── backend/                             # Hono backend (Cloudflare Workers)
+│   ├── src/
+│   │   ├── index.ts                    # API routes including /api/verify
+│   │   ├── worker.ts                   # Worker entry point
+│   │   └── env.ts                      # Environment types
+│   ├── .dev.vars                       # Local development variables
+│   ├── wrangler.toml                   # Cloudflare config
+│   └── package.json
+│
+└── app/                                # Legacy Next.js (reference only)
+    └── ...
 ```
 
 ---

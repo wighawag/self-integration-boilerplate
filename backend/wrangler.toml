@@ -10,3 +10,9 @@ preview_urls = true
 [observability.logs]
 enabled = true
 
+# Default values - override with environment-specific config
+# For production, set SELF_ENDPOINT to your public URL
+[vars]
+SELF_SCOPE_SEED = "self-workshop"
+SELF_ENDPOINT = "https://your-domain.com/api/verify"
+

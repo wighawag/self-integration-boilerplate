@@ -1,7 +1,7 @@
 {
-	"name": "Template Website",
-	"title": "Template Website",
-	"description": "A template to build website",
+	"name": "Self Workshop",
+	"title": "Self Workshop",
+	"description": "Verify your identity with Self Protocol",
 	"canonicalURL": "https://localhost",
 	"ENSName": null,
 	"themeColor": "#000000",
