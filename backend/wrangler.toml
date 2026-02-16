@@ -1,0 +1,12 @@
+name = "self-template-server"
+main = "src/worker.ts"
+compatibility_date = "2023-08-14"
+
+compatibility_flags = [ "nodejs_compat" ] # for node:async_hooks
+
+workers_dev = true
+preview_urls = true
+
+[observability.logs]
+enabled = true
+
