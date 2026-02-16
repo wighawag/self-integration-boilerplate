@@ -31,6 +31,15 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
         );
       }
 
+      if (!scopeSeed) {
+        return c.json(
+          {
+            message: "SELF_SCOPE_SEED environment variable is not set",
+          },
+          500,
+        );
+      }
+
       // Create verifier instance
       const selfBackendVerifier = new SelfBackendVerifier(
         scopeSeed,
