@@ -78,7 +78,7 @@
 				endpoint,
 				logoBase64: 'https://i.postimg.cc/mrmVf9hm/self.png',
 				userId: userId,
-				endpointType: 'staging_https',
+				endpointType: 'https',
 				userIdType: 'hex',
 				userDefinedData: 'Hello from Svelte!',
 				disclosures: {

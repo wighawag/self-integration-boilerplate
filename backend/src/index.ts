@@ -44,7 +44,7 @@ export function createServer<CustomEnv extends CloudflareWorkerEnv>(
       const selfBackendVerifier = new SelfBackendVerifier(
         scopeSeed,
         endpoint,
-        true, // mockPassport: true = staging/testnet, false = mainnet
+        false, // mockPassport: true = staging/testnet, false = mainnet
         AllIds,
         new DefaultConfigStore({
           minimumAge: 18,
