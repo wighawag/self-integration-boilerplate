@@ -38,7 +38,7 @@
 	"scripts": {
 		"prepare": "pnpm generate-pwa-icons-and-tags && svelte-kit sync || echo ''",
 		"generate-pwa-icons-and-tags": "pwag static/icon.png src/web-config.json",
-		"dev": "echo $PUBLIC_SELF_ENDPOINT && vite dev",
+		"dev": "echo $PUBLIC_SELF_ENDPOINT && vite dev --host",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
